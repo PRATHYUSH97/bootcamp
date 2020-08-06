@@ -8,7 +8,10 @@ import (
 
 func main() {
 	mux := defaultMux()
-
+	var dataformat string
+	fmt.Println("Should we use yaml or json for url shortening?")
+	fmt.Println("press 'y' for yaml and 'j' for json")
+	fmt.Scanln(&dataformat)
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
 		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
@@ -23,13 +26,30 @@ func main() {
   - path: /urlshort-final
     url: https://github.com/gophercises/urlshort/tree/solution
 `
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
+
+	json := `[{"path": "/urlshort", "url": "https://github.com/gophercises/urlshort"},
+	{"path": "/urlshort", "url": "https://github.com/gophercises/urlshort"}
+	]`
+
+	yamlhandler, err := urlshort.YAMLJSONHandler([]byte(yaml), mapHandler)
 	if err != nil {
 		panic(err)
 	}
+	jsonhandler, err := urlshort.YAMLJSONHandler([]byte(json), mapHandler)
+	_ = yamlhandler
+	_ = jsonhandler
 
-	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	if dataformat == "j" || dataformat == "y" {
+		fmt.Println("Starting the server on :8080")
+		if dataformat == "j" {
+			http.ListenAndServe(":8080", jsonhandler)
+		} else {
+			http.ListenAndServe(":8080", jsonhandler)
+		}
+
+	} else {
+		fmt.Println("you pressed an invalid key")
+	}
 
 }
 

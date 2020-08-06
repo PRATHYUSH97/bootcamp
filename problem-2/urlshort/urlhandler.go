@@ -39,16 +39,16 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 //
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
-func YAMLHandler(yamlBytes []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	pathUrls, err := parseYaml(yamlBytes)
+func YAMLJSONHandler(yamlBytes []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	pathUrls, err := parseYamlJson(yamlBytes)
 	if err != nil {
 		return nil, err
 	}
-	pathsToUrls := buildMap(pathUrls)
+	pathsToUrls := converttomap(pathUrls)
 	return MapHandler(pathsToUrls, fallback), nil
 }
 
-func buildMap(pathUrls []pathURL) map[string]string {
+func converttomap(pathUrls []pathURL) map[string]string {
 	pathsToUrls := make(map[string]string)
 	for _, pu := range pathUrls {
 		pathsToUrls[pu.Path] = pu.URL
@@ -56,7 +56,7 @@ func buildMap(pathUrls []pathURL) map[string]string {
 	return pathsToUrls
 }
 
-func parseYaml(data []byte) ([]pathURL, error) {
+func parseYamlJson(data []byte) ([]pathURL, error) {
 	var pathUrls []pathURL
 	err := yaml.Unmarshal(data, &pathUrls)
 	if err != nil {
@@ -66,6 +66,6 @@ func parseYaml(data []byte) ([]pathURL, error) {
 }
 
 type pathURL struct {
-	Path string `yaml:"path"`
-	URL  string `yaml:"url"`
+	Path string `yaml:"path" json:"path"`
+	URL  string `yaml:"url" json:"url"`
 }
