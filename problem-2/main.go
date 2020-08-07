@@ -28,7 +28,7 @@ func main() {
 `
 
 	json := `[{"path": "/urlshort", "url": "https://github.com/gophercises/urlshort"},
-	{"path": "/urlshort", "url": "https://github.com/gophercises/urlshort"}
+	{"path": "/urlshort-final", "url": "https://github.com/gophercises/urlshort/tree/solution"}
 	]`
 
 	yamlhandler, err := urlshort.YAMLJSONHandler([]byte(yaml), mapHandler)
