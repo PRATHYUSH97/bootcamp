@@ -21,6 +21,7 @@ type Complete struct {
 	Value string
 }
 
+//connects to boltdb and creates taskBucket and completebucket
 func Init(dbPath string) error {
 	var err error
 	db, err = bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -46,6 +47,7 @@ func Init(dbPath string) error {
 	return nil
 }
 
+//inserts into taskBucket and returns the id with which task was inserted
 func CreateTask(task string) (int, error) {
 	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -61,23 +63,22 @@ func CreateTask(task string) (int, error) {
 	return id, nil
 }
 
-func CreateComplete(task string) (int, error) {
-	var id int
+//inserts completed task into completebucket
+func CreateComplete(task string) error {
+
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(completebucket)
-		//id64, _ := b.NextSequence()
-		//id = int(id64)
-		//key := itob(id)
 		time := time.Now().String()
 		return b.Put([]byte(time), []byte(task))
 	})
 	if err != nil {
-		return -1, err
+		return err
 	}
-	return id, nil
+	return nil
 
 }
 
+//returns all the pending tasks
 func AllTasks() ([]Task, error) {
 	var tasks []Task
 	err := db.View(func(tx *bolt.Tx) error {
@@ -97,6 +98,7 @@ func AllTasks() ([]Task, error) {
 	return tasks, nil
 }
 
+//returns all the tasks completed within 14 hours
 func Completedtoday() ([]string, error) {
 	var tasks []string
 	err := db.View(func(tx *bolt.Tx) error {
@@ -123,6 +125,7 @@ func Completedtoday() ([]string, error) {
 
 }
 
+// deletes a task from taskbucket
 func DeleteTask(key int) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(taskBucket)
@@ -130,12 +133,14 @@ func DeleteTask(key int) error {
 	})
 }
 
+//converts integer to byte slice
 func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b
 }
 
+//converts byte slice to integer
 func btoi(b []byte) int {
 	return int(binary.BigEndian.Uint64(b))
 }

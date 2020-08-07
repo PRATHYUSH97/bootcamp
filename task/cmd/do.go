@@ -34,7 +34,7 @@ var doCmd = &cobra.Command{
 			}
 			task := tasks[id-1]
 			err := db.DeleteTask(task.Key)
-			_, err1 := db.CreateComplete(task.Value)
+			err1 := db.CreateComplete(task.Value)
 			if err1 != nil {
 				fmt.Println("Something went wrong:", err1)
 			}
