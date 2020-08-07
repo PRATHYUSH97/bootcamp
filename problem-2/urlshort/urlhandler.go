@@ -1,8 +1,11 @@
 package urlshort
 
 import (
+	"database/sql"
+	"log"
 	"net/http"
 
+	_ "github.com/go-sql-driver/mysql"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -68,4 +71,43 @@ func parseYamlJson(data []byte) ([]pathURL, error) {
 type pathURL struct {
 	Path string `yaml:"path" json:"path"`
 	URL  string `yaml:"url" json:"url"`
+}
+
+func DbHandler(database string, user string, password string, fallback http.Handler) (http.HandlerFunc, error) {
+	paths, err := connectdatabase(database, user, password)
+	if err != nil {
+		return nil, err
+	}
+	return MapHandler(paths, fallback), nil
+}
+
+func connectdatabase(database string, user string, password string) (map[string]string, error) {
+
+	db, err := sql.Open("mysql", user+":"+password+"@tcp(127.0.0.1:3306)/"+database)
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	rows, err := db.Query("SELECT * FROM paths")
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	m := make(map[string]string)
+	for rows.Next() {
+		var path pathURL
+
+		err = rows.Scan(&path.URL, &path.Path)
+		if err != nil {
+			log.Fatal(err)
+			return nil, err
+		}
+
+		m[path.Path] = path.URL
+	}
+	defer db.Close()
+
+	return m, nil
 }

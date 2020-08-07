@@ -7,10 +7,14 @@ import (
 )
 
 func main() {
+	const database string = "test"
+	const username string = "prathyush"
+	const password string = "prathyush"
+
 	mux := defaultMux()
 	var dataformat string
-	fmt.Println("Should we use yaml or json for url shortening?")
-	fmt.Println("press 'y' for yaml and 'j' for json")
+	fmt.Println("Should we use yaml or json or databse datafor url shortening?")
+	fmt.Println("press 'y' for yaml and 'j' for json d for database")
 	fmt.Scanln(&dataformat)
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
@@ -36,15 +40,22 @@ func main() {
 		panic(err)
 	}
 	jsonhandler, err := urlshort.YAMLJSONHandler([]byte(json), mapHandler)
-	_ = yamlhandler
-	_ = jsonhandler
+	if err != nil {
+		panic(err)
+	}
+	dbhandler, err := urlshort.DbHandler(database, username, password, mapHandler)
+	if err != nil {
+		panic(err)
+	}
 
-	if dataformat == "j" || dataformat == "y" {
+	if dataformat == "j" || dataformat == "y" || dataformat == "d" {
 		fmt.Println("Starting the server on :8080")
 		if dataformat == "j" {
 			http.ListenAndServe(":8080", jsonhandler)
+		} else if dataformat == "y" {
+			http.ListenAndServe(":8080", yamlhandler)
 		} else {
-			http.ListenAndServe(":8080", jsonhandler)
+			http.ListenAndServe(":8080", dbhandler)
 		}
 
 	} else {
